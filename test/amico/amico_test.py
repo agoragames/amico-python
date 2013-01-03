@@ -51,6 +51,22 @@ class AmicoTest(unittest.TestCase):
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(1)
 
+  # pending follow tests
+  def test_it_should_remove_the_pending_relationship_and_add_to_following_and_followers_if_accept_is_called(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.is_pending(1, 11).should.be.true
+    amico.is_pending_with(11, 1).should.be.true
+
+    amico.accept(1, 11)
+
+    amico.is_pending(1, 11).should.be.false
+    amico.is_pending_with(11, 1).should.be.false
+    amico.is_following(1, 11).should.be.true
+    amico.is_following(11, 1).should.be.false
+    amico.is_follower(11, 1).should.be.true
+    amico.is_follower(1, 11).should.be.false
+
   # unfollow tests
   def test_it_should_allow_you_to_unfollow(self):
     amico = Amico(redis_connection = self.redis_connection)

@@ -17,9 +17,9 @@ class Amico(object):
     'page_size': 25
   }
 
-  def __init__(self, default_options = DEFAULTS, redis_connection = None):
+  def __init__(self, options = DEFAULTS, redis_connection = None):
     self.options = Amico.DEFAULTS.copy()
-    self.options.update(default_options)
+    self.options.update(options)
     if redis_connection == None:
       self.redis_connection = redis.StrictRedis(host = 'localhost', port = 6379, db = 0)
     else:
@@ -92,11 +92,26 @@ class Amico(object):
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, to_id), from_id)
     transaction.execute()
 
+  def accept(self, from_id, to_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if from_id == to_id:
+      return
+
+    self.__add_following_followers_reciprocated(from_id, to_id, scope)
+
   def is_blocked(self, id, blocked_id, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']
 
     return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, id), blocked_id) != None
+
+  def is_follower(self, id, follower_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, id), follower_id) != None
 
   def is_following(self, id, following_id, scope = None):
     if scope == None:
@@ -109,6 +124,18 @@ class Amico(object):
       scope = self.options['default_scope_key']
 
     return self.is_following(from_id, to_id, scope) and self.is_following(to_id, from_id, scope)
+
+  def is_pending(self, from_id, to_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), from_id) != None
+
+  def is_pending_with(self, from_id, to_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, to_id), from_id) != None
 
   def __add_following_followers_reciprocated(self, from_id, to_id, scope = None):
     if scope == None:
