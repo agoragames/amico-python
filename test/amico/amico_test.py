@@ -129,3 +129,17 @@ class AmicoTest(unittest.TestCase):
     amico.unblock(1, 11)
     amico.is_blocked(1, 11).should.be.false
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_by_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+
+  # deny tests
+  def test_it_should_remove_the_pending_relationship_without_following_or_blocking(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.is_pending(1, 11).should.be.true
+    amico.is_pending_with(11, 1).should.be.true
+
+    amico.deny(1, 11)
+
+    amico.is_following(1, 11).should.be.false
+    amico.is_pending(1, 11).should.be.false
+    amico.is_pending_with(11, 1).should.be.false
+    amico.is_blocked(1, 11).should.be.false

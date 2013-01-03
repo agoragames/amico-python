@@ -101,6 +101,18 @@ class Amico(object):
 
     self.__add_following_followers_reciprocated(from_id, to_id, scope)
 
+  def deny(self, from_id, to_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if from_id == to_id:
+      return
+
+    transaction = self.redis_connection.pipeline()
+    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), from_id)
+    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), to_id)
+    transaction.execute()
+
   def is_blocked(self, id, blocked_id, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']
