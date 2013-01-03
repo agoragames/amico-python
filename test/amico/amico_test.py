@@ -143,3 +143,45 @@ class AmicoTest(unittest.TestCase):
     amico.is_pending(1, 11).should.be.false
     amico.is_pending_with(11, 1).should.be.false
     amico.is_blocked(1, 11).should.be.false
+
+  # clear tests
+  def test_it_should_remove_follower_and_following_relationships(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+
+    amico.following_count(1).should.equal(1)
+    amico.followers_count(1).should.equal(1)
+    amico.reciprocated_count(1).should.equal(1)
+    amico.following_count(11).should.equal(1)
+    amico.followers_count(11).should.equal(1)
+    amico.reciprocated_count(11).should.equal(1)
+
+    amico.clear(1)
+
+    amico.following_count(1).should.equal(0)
+    amico.followers_count(1).should.equal(0)
+    amico.reciprocated_count(1).should.equal(0)
+    amico.following_count(11).should.equal(0)
+    amico.followers_count(11).should.equal(0)
+    amico.reciprocated_count(11).should.equal(0)
+
+  def test_it_should_clear_pending_pending_with_relationships(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.pending_count(11).should.equal(1)
+
+    amico.clear(1)
+
+    amico.pending_count(11).should.equal(0)
+
+  def test_it_should_clear_blocked_blocked_by_relationships(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+    amico.blocked_count(1).should.equal(1)
+    amico.blocked_by_count(11).should.equal(1)
+
+    amico.clear(11)
+
+    amico.blocked_count(1).should.equal(0)
+    amico.blocked_by_count(11).should.equal(0)

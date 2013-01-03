@@ -113,6 +113,21 @@ class Amico(object):
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), to_id)
     transaction.execute()
 
+  def clear(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    # no longer following (or followed by) anyone
+    self.__clear_bidirectional_sets_for_id(id, self.options['following_key'], self.options['followers_key'], scope)
+    self.__clear_bidirectional_sets_for_id(id, self.options['followers_key'], self.options['following_key'], scope)
+    self.__clear_bidirectional_sets_for_id(id, self.options['reciprocated_key'], self.options['reciprocated_key'], scope)
+    # no longer blocked by (or blocking) anyone
+    self.__clear_bidirectional_sets_for_id(id, self.options['blocked_by_key'], self.options['blocked_key'], scope)
+    self.__clear_bidirectional_sets_for_id(id, self.options['blocked_key'], self.options['blocked_by_key'], scope)
+    # no longer pending with anyone (or have any pending followers)
+    self.__clear_bidirectional_sets_for_id(id, self.options['pending_with_key'], self.options['pending_key'], scope)
+    self.__clear_bidirectional_sets_for_id(id, self.options['pending_key'], self.options['pending_with_key'], scope)
+
   def is_blocked(self, id, blocked_id, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']
@@ -148,6 +163,60 @@ class Amico(object):
       scope = self.options['default_scope_key']
 
     return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, to_id), from_id) != None
+
+  def following_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, id))
+
+  def followers_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, id))
+
+  def blocked_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, id))
+
+  def blocked_by_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, id))
+
+  def reciprocated_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, id))
+
+  def pending_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, id))
+
+  def pending_with_count(self, id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id))
+
+  def __clear_bidirectional_sets_for_id(self, id, source_set_key, related_set_key, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    related_ids = self.redis_connection.zrange('%s:%s:%s:%s' % (self.options['namespace'], source_set_key, scope, id), 0, -1)
+    transaction = self.redis_connection.pipeline()
+    for related_id in related_ids:
+      self.redis_connection.zrem('%s:%s:%s:%s' % (self.options['namespace'], related_set_key, scope, related_id), id)
+    transaction.execute()
+
+    self.redis_connection.delete('%s:%s:%s:%s' % (self.options['namespace'], source_set_key, scope, id))
 
   def __add_following_followers_reciprocated(self, from_id, to_id, scope = None):
     if scope == None:
