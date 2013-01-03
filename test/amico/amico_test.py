@@ -65,3 +65,41 @@ class AmicoTest(unittest.TestCase):
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['followers_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(0)
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+
+  # block tests
+  def test_it_should_allow_you_to_block_someone_following_you(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(11, 1)
+    amico.block(1, 11)
+
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['following_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_by_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(1)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(0)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+
+  def test_it_should_allow_you_to_block_someone_who_is_not_following_you(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['following_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_by_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(1)
+
+  def test_it_should_not_allow_someone_you_have_blocked_to_follow_you(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['following_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
+
+    amico.follow(11, 1)
+
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['following_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
+
+  def test_it_should_not_allow_you_to_block_yourself(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 1)
+
+    amico.is_blocked(1, 1).should.be.false
