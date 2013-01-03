@@ -103,3 +103,13 @@ class AmicoTest(unittest.TestCase):
     amico.block(1, 1)
 
     amico.is_blocked(1, 1).should.be.false
+
+  # unblock tests
+  def test_it_should_allow_you_to_block_someone_you_have_blocked(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+    amico.is_blocked(1, 11).should.be.true
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_by_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(1)
+    amico.unblock(1, 11)
+    amico.is_blocked(1, 11).should.be.false
+    amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['blocked_by_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(0)
