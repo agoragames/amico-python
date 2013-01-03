@@ -134,6 +134,12 @@ class Amico(object):
 
     return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, id), blocked_id) != None
 
+  def is_blocked_by(self, id, blocked_by_id, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    return self.redis_connection.zscore('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, id), blocked_by_id) != None
+
   def is_follower(self, id, follower_id, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']
