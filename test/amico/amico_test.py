@@ -199,6 +199,45 @@ class AmicoTest(unittest.TestCase):
     amico.following(1, page_options = {'page': 1, 'page_size': 10}).should.have.length_of(10)
     amico.following(1, page_options = {'page': 1, 'page_size': 26}).should.have.length_of(25)
 
+  def test_it_should_return_the_correct_followers_list(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(2, 11)
+    amico.followers(11).should.equal(["2", "1"])
+
+  def test_it_should_should_return_the_correct_blocked_list(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+    amico.block(1, 12)
+    amico.blocked(1).should.equal(["12", "11"])
+
+  def test_it_should_return_the_correct_blocked_by_list(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(11, 1)
+    amico.block(12, 1)
+    amico.blocked_by(1).should.equal(["12", "11"])
+
+  def test_it_should_return_the_correct_reciprocated_list(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+    amico.reciprocated(1).should.equal(["11"])
+    amico.reciprocated(11).should.equal(["1"])
+
+  def test_it_should_return_the_correct_pending_list(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+    amico.pending(1).should.equal(["11"])
+    amico.pending(11).should.equal(["1"])
+
+  def test_it_should_return_the_correct_pending_with_list(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+    amico.pending_with(1).should.equal(["11"])
+    amico.pending_with(11).should.equal(["1"])
+
   def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
     for outer_index in range(1, count):
       for inner_index in range(1, count):

@@ -222,6 +222,60 @@ class Amico(object):
 
     return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, id), page_options)
 
+  def followers(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, id), page_options)
+
+  def blocked(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, id), page_options)
+
+  def blocked_by(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, id), page_options)
+
+  def reciprocated(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, id), page_options)
+
+  def pending(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, id), page_options)
+
+  def pending_with(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id), page_options)
+
   # private methods
 
   # Valid relationtionships that can be used in #all, #count, #page_count, etc...
