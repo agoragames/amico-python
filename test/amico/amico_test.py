@@ -185,3 +185,26 @@ class AmicoTest(unittest.TestCase):
 
     amico.blocked_count(1).should.equal(0)
     amico.blocked_by_count(11).should.equal(0)
+
+  def test_it_should_return_the_correct_following_list(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(1, 12)
+    amico.following(1).should.equal(["12", "11"])
+
+  def test_following_should_page_correctly(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+    amico.following(1, page_options = {'page': 1, 'page_size': 5}).should.have.length_of(5)
+    amico.following(1, page_options = {'page': 1, 'page_size': 10}).should.have.length_of(10)
+    amico.following(1, page_options = {'page': 1, 'page_size': 26}).should.have.length_of(25)
+
+  def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
+    for outer_index in range(1, count):
+      for inner_index in range(1, count):
+        if outer_index != inner_index:
+          amico.follow(outer_index, inner_index + 1000)
+          amico.follow(inner_index + 1000, outer_index)
+          if block_relationship:
+            amico.block(outer_index, inner_index + 1000)
+            amico.block(inner_index + 1000, outer_index)

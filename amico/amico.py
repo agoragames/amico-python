@@ -1,3 +1,4 @@
+import math
 import redis
 
 class Amico(object):
@@ -212,6 +213,24 @@ class Amico(object):
 
     return self.redis_connection.zcard('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id))
 
+  def following(self, id, page_options = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_options == None:
+      page_options = self.__default_paging_options()
+
+    return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, id), page_options)
+
+  # private methods
+
+  # Valid relationtionships that can be used in #all, #count, #page_count, etc...
+  VALID_RELATIONSHIPS = ['following', 'followers', 'reciprocated', 'blocked', 'blocked_by', 'pending', 'pending_with']
+
+  def __validate_relationship_type(self, type):
+    if type not in VALID_RELATIONSHIPS:
+      raise Exception('Invalid relationship type given %s' % type)
+
   def __clear_bidirectional_sets_for_id(self, id, source_set_key, related_set_key, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']
@@ -240,3 +259,34 @@ class Amico(object):
       transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, from_id), 33, to_id)
       transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, to_id), 33, from_id)
       transaction.execute()
+
+  def __total_pages(self, key, page_size):
+    return int(math.ceil(self.redis_connection.zcard(key) / float(page_size)))
+
+  def __default_paging_options(self):
+    default_options = {
+      'page_size': self.DEFAULTS['page_size'],
+      'page': 1
+    }
+
+    return default_options
+
+  def __members(self, key, options = None):
+    if options == None:
+      options = self.__default_paging_options()
+
+    if options['page'] < 1:
+      options['page'] = 1
+
+    total_pages = self.__total_pages(key, options['page_size'])
+    if options['page'] > total_pages:
+      options['page'] = total_pages
+
+    index_for_redis = options['page'] - 1
+    starting_offset = (index_for_redis * options['page_size'])
+
+    if starting_offset < 0:
+      starting_offset = 0
+
+    ending_offset = (starting_offset + options['page_size']) - 1
+    return self.redis_connection.zrevrange(key, starting_offset, ending_offset, withscores = False)
