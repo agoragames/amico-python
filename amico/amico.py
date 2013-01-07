@@ -498,7 +498,7 @@ class Amico(object):
     Count the number of pages of follower relationships for an individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -514,7 +514,7 @@ class Amico(object):
     Count the number of pages of blocked relationships for an individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -530,7 +530,7 @@ class Amico(object):
     Count the number of pages of blocked_by relationships for an individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -546,7 +546,7 @@ class Amico(object):
     Count the number of pages of reciprocated relationships for an individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -562,7 +562,7 @@ class Amico(object):
     Count the number of pages of pending relationships for an individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -578,7 +578,7 @@ class Amico(object):
     Count the number of pages of individuals waiting to approve another individual.
 
     @param id [String] ID of the individual.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if scope == None:
@@ -627,7 +627,7 @@ class Amico(object):
 
     @param id [String] ID of the individual.
     @param type [String] One of 'following', 'followers', 'reciprocated', 'blocked', 'blocked_by', 'pending', 'pending_with'.
-    @param page_size [int] Page size (default: Amico.page_size).
+    @param page_size [int] Page size (default: Amico.DEFAULTS['page_size']).
     @param scope [String] Scope for the call.
     '''
     if page_size == None:
