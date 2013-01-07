@@ -693,7 +693,7 @@ class Amico(object):
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), 33, to_id)
     transaction.execute()
 
-    if self.is_reciprocated(from_id, to_id):
+    if self.is_reciprocated(from_id, to_id, scope):
       transaction = self.redis_connection.pipeline()
       transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, from_id), 33, to_id)
       transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, to_id), 33, from_id)
