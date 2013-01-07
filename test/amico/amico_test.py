@@ -294,6 +294,26 @@ class AmicoTest(unittest.TestCase):
     amico.pending_with_page_count(1, 10).should.equal(3)
     amico.pending_with_page_count(1, 5).should.equal(5)
 
+  def test_it_should_return_the_correct_count_for_various_types_of_relationships(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, count = 6)
+
+    amico.count(1, 'following').should.equal(4)
+    amico.count(1, 'followers').should.equal(4)
+    amico.count(1, 'reciprocated').should.equal(4)
+
+    self.redis_connection.flushdb()
+    self.__add_reciprocal_followers(amico, count = 6, block_relationship = True)
+
+    amico.count(1, 'blocked').should.equal(4)
+    amico.count(1, 'blocked_by').should.equal(4)
+
+    self.redis_connection.flushdb()
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, count = 6)
+
+    amico.count(1, 'pending').should.equal(4)
+
   def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
     for outer_index in range(1, count):
       for inner_index in range(1, count):

@@ -1,4 +1,5 @@
 import math
+import sys
 import redis
 
 class Amico(object):
@@ -339,13 +340,20 @@ class Amico(object):
 
     return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id), page_size)
 
+  def count(self, id, type, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    self.__validate_relationship_type(type)
+    return getattr(self, '%s_count' % type)(id, scope)
+
   # private methods
 
   # Valid relationtionships that can be used in #all, #count, #page_count, etc...
   VALID_RELATIONSHIPS = ['following', 'followers', 'reciprocated', 'blocked', 'blocked_by', 'pending', 'pending_with']
 
   def __validate_relationship_type(self, type):
-    if type not in VALID_RELATIONSHIPS:
+    if type not in self.VALID_RELATIONSHIPS:
       raise Exception('Invalid relationship type given %s' % type)
 
   def __clear_bidirectional_sets_for_id(self, id, source_set_key, related_set_key, scope = None):
