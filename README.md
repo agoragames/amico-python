@@ -11,6 +11,131 @@ check out the [Redis documentation](http://redis.io/documentation).
 
 ## Usage
 
+Be sure to import the Amico library:
+
+```python
+from amico import Amico
+```
+
+Amico is configured with a number of defaults:
+
+```python
+>>> Amico.DEFAULTS
+{'namespace': 'amico', 'pending_follow': False, 'reciprocated_key': 'reciprocated', 'followers_key': 'followers', 'pending_with_key': 'pending_with', 'following_key': 'following', 'page_size': 25, 'pending_key': 'pending', 'blocked_by_key': 'blocked_by', 'default_scope_key': 'default', 'blocked_key': 'blocked'}
+```
+
+The initializer for Amico takes two optional parameters:
+
+* `options` : Dictionary of updated defaults
+* `redis_connection` : Connection to Redis
+
+```python
+>>> amico = Amico(redis_connection = redis)
+```
+
+```python
+>>> amico.follow(1, 11)
+>>> amico.is_following(1, 11)
+True
+>>> amico.is_following(11, 1)
+False
+>>> amico.follow(11, 1)
+>>> amico.is_following(11, 1)
+True
+>>> amico.following_count(1)
+1
+>>> amico.followers_count(1)
+1
+>>> amico.unfollow(11, 1)
+>>> amico.following_count(11)
+0
+>>> amico.following_count(1)
+1
+>>> amico.is_follower(1, 11)
+False
+>>> amico.following(1)
+['11']
+>>> amico.block(1, 11)
+>>> amico.is_following(11, 1)
+False
+>>> amico.is_blocked(1, 11)
+True
+>>> amico.is_blocked_by(11, 1)
+True
+>>> amico.unblock(1, 11)
+>>> amico.is_blocked(1, 11)
+False
+>>> amico.is_blocked_by(11, 1)
+False
+>>> amico.follow(11, 1)
+>>> amico.follow(1, 11)
+>>> amico.is_reciprocated(1, 11)
+True
+>>> amico.reciprocated(1)
+['11']
+```
+
+Use amico (with pending relationships for follow):
+
+```python
+>>> amico = Amico(options = {'pending_follow': True}, redis_connection = redis)
+>>> amico.follow(1, 11)
+>>> amico.follow(11, 1)
+>>> amico.is_pending(1, 11)
+True
+>>> amico.is_pending_with(11, 1)
+True
+>>> amico.is_pending(11, 1)
+True
+>>> amico.is_pending_with(1, 11)
+True
+>>> amico.accept(1, 11)
+>>> amico.is_pending(1, 11)
+False
+>>> amico.is_pending_with(11, 1)
+False
+>>> amico.is_pending(11, 1)
+True
+>>> amico.is_pending_with(1, 11)
+True
+>>> amico.is_following(1, 11)
+True
+>>> amico.is_following(11, 1)
+False
+>>> amico.is_follower(11, 1)
+True
+>>> amico.is_follower(1, 11)
+False
+>>> amico.accept(11, 1)
+>>> amico.is_pending(1, 11)
+False
+>>> amico.is_pending_with(11, 1)
+False
+>>> amico.is_pending(11, 1)
+False
+>>> amico.is_pending_with(1, 11)
+False
+>>> amico.is_following(1, 11)
+True
+>>> amico.is_following(11, 1)
+True
+>>> amico.is_follower(11, 1)
+True
+>>> amico.is_follower(1, 11)
+True
+>>> amico.is_reciprocated(1, 11)
+True
+>>> amico.follow(1, 12)
+>>> amico.is_following(1, 12)
+False
+>>> amico.is_pending(1, 12)
+True
+>>> amico.deny(1, 12)
+>>> amico.is_following(1, 12)
+False
+>>> amico.is_pending(1, 12)
+False
+```
 ## FAQ?
 
 ### Why use Redis sorted sets and not Redis sets?
