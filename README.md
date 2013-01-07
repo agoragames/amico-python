@@ -136,6 +136,56 @@ False
 >>> amico.is_pending(1, 12)
 False
 ```
+
+All of the calls support a `scope` parameter to allow you to scope the calls to express relationships for different types of things. For example:
+
+```python
+>>> amico = Amico(options = {'default_scope_key': 'user'}, redis_connection = redis)
+>>> amico.follow(1, 11)
+>>> amico.is_following(1, 11)
+True
+>>> amico.is_following(1, 11, scope = 'user')
+True
+>>> amico.following(1)
+['11']
+>>> amico.following(1, scope = 'user')
+['11']
+>>> amico.is_following(1, 11, scope = 'project')
+False
+>>> amico.follow(1, 11, scope = 'project')
+>>> amico.is_following(1, 11, scope = 'project')
+True
+>>> amico.following(1, scope = 'project')
+['11']
+```
+
+You can retrieve all of a particular type of relationship using the `all(id, type, scope)` call. For example:
+
+```python
+>>> amico.follow(1, 11)
+>>> amico.follow(1, 12)
+>>> amico.all(1, 'following')
+['12', '11']
+```
+
+`type` can be one of 'following', 'followers', 'blocked', 'blocked_by', reciprocated', 'pending' and 'pending_with'. Use this with caution as there may potentially be a large number of items that could be returned from this call.
+
+You can clear all relationships that have been set for an ID by calling `clear(id, scope)`. You may wish to do this if you allow records to be deleted and you wish to prevent orphaned IDs and inaccurate follower/following counts. Note that this clears *all* relationships in either direction - including blocked and pending. An example:
+
+```python
+>>> amico.follow(11, 1)
+>>> amico.block(12, 1)
+>>> amico.following(11)
+['1']
+>>> amico.blocked(12)
+['1']
+>>> amico.clear(1)
+>>> amico.following(11)
+[]
+>>> amico.blocked(12)
+[]
+```
+
 ## FAQ?
 
 ### Why use Redis sorted sets and not Redis sets?
