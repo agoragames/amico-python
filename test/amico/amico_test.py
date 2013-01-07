@@ -238,6 +238,62 @@ class AmicoTest(unittest.TestCase):
     amico.pending_with(1).should.equal(["11"])
     amico.pending_with(11).should.equal(["1"])
 
+  def test_it_should_return_the_correct_following_page_count(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+
+    amico.following_page_count(1).should.equal(1)
+    amico.following_page_count(1, 10).should.equal(3)
+    amico.following_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_followers_page_count(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+
+    amico.followers_page_count(1).should.equal(1)
+    amico.followers_page_count(1, 10).should.equal(3)
+    amico.followers_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_blocked_page_count(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, block_relationship = True)
+
+    amico.blocked_page_count(1).should.equal(1)
+    amico.blocked_page_count(1, 10).should.equal(3)
+    amico.blocked_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_blocked_by_page_count(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, block_relationship = True)
+
+    amico.blocked_by_page_count(1).should.equal(1)
+    amico.blocked_by_page_count(1, 10).should.equal(3)
+    amico.blocked_by_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_reciprocated_page_count(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+
+    amico.reciprocated_page_count(1).should.equal(1)
+    amico.reciprocated_page_count(1, 10).should.equal(3)
+    amico.reciprocated_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_pending_page_count(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+
+    amico.pending_page_count(1).should.equal(1)
+    amico.pending_page_count(1, 10).should.equal(3)
+    amico.pending_page_count(1, 5).should.equal(5)
+
+  def test_it_should_return_the_correct_pending_with_page_count(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico)
+
+    amico.pending_with_page_count(1).should.equal(1)
+    amico.pending_with_page_count(1, 10).should.equal(3)
+    amico.pending_with_page_count(1, 5).should.equal(5)
+
   def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
     for outer_index in range(1, count):
       for inner_index in range(1, count):

@@ -276,6 +276,69 @@ class Amico(object):
 
     return self.__members('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id), page_options)
 
+  def following_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, id), page_size)
+
+  def followers_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, id), page_size)
+
+  def blocked_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, id), page_size)
+
+  def blocked_by_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, id), page_size)
+
+  def reciprocated_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, id), page_size)
+
+  def pending_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, id), page_size)
+
+  def pending_with_page_count(self, id, page_size = None, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id), page_size)
+
   # private methods
 
   # Valid relationtionships that can be used in #all, #count, #page_count, etc...
