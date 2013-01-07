@@ -347,6 +347,16 @@ class Amico(object):
     self.__validate_relationship_type(type)
     return getattr(self, '%s_count' % type)(id, scope)
 
+  def page_count(self, id, type, page_size = None, scope = None):
+    if page_size == None:
+      page_size = self.DEFAULTS['page_size']
+
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    self.__validate_relationship_type(type)
+    return getattr(self, '%s_page_count' % type)(id, page_size, scope)
+
   # private methods
 
   # Valid relationtionships that can be used in #all, #count, #page_count, etc...
