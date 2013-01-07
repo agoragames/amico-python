@@ -340,6 +340,17 @@ class Amico(object):
 
     return self.__total_pages('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, id), page_size)
 
+  def all(self, id, type, scope = None):
+    if scope == None:
+      scope = self.options['default_scope_key']
+
+    self.__validate_relationship_type(type)
+    count = getattr(self, '%s_count' % type)(id, scope)
+    if count > 0:
+      return getattr(self, '%s' % type)(id, {'page_size': count, 'page': 1}, scope)
+    else:
+      return []
+
   def count(self, id, type, scope = None):
     if scope == None:
       scope = self.options['default_scope_key']

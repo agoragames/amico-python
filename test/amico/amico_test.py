@@ -334,6 +334,39 @@ class AmicoTest(unittest.TestCase):
 
     amico.page_count(1, 'pending').should.equal(1)
 
+  # all tests
+
+  def test_it_should_return_the_correct_list_when_calling_all_for_various_types(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, count = 6)
+
+    for type in ['following', 'followers', 'reciprocated']:
+      list = amico.all(1, type)
+      list.should.have.length_of(4)
+
+    # pending
+    self.redis_connection.flushdb()
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, count = 6)
+
+    for type in ['following', 'followers', 'reciprocated']:
+      list = amico.all(1, type)
+      list.should.have.length_of(0)
+
+    amico.all(1, 'pending').should.have.length_of(4)
+
+    # blocked
+    self.redis_connection.flushdb()
+    amico = Amico(redis_connection = self.redis_connection)
+    self.__add_reciprocal_followers(amico, count = 6, block_relationship = True)
+
+    for type in ['following', 'followers', 'reciprocated']:
+      list = amico.all(1, type)
+      list.should.have.length_of(0)
+
+    amico.all(1, 'blocked').should.have.length_of(4)
+    amico.all(1, 'blocked_by').should.have.length_of(4)
+
   def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
     for outer_index in range(1, count):
       for inner_index in range(1, count):
