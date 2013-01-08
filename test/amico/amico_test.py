@@ -51,6 +51,41 @@ class AmicoTest(unittest.TestCase):
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 1)).should.equal(1)
     amico.redis_connection.zcard('%s:%s:%s:%s' % (Amico.DEFAULTS['namespace'], Amico.DEFAULTS['reciprocated_key'], Amico.DEFAULTS['default_scope_key'], 11)).should.equal(1)
 
+  def test_it_should_return_that_you_are_following(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.is_following(1, 11).should.be.true
+    amico.is_following(11, 1).should.be.false
+
+    amico.follow(11, 1)
+    amico.is_following(11, 1).should.be.true
+
+  def test_it_should_return_that_you_are_being_followed(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.is_follower(11, 1).should.be.true
+    amico.is_follower(1, 11).should.be.false
+
+    amico.follow(11, 1)
+    amico.is_follower(1, 11).should.be.true
+
+  def test_it_should_return_true_if_both_individuals_are_following_each_other(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.is_reciprocated(1, 11).should.be.false
+    amico.follow(11, 1)
+    amico.is_reciprocated(1, 11).should.be.true
+
+  def test_it_should_respect_scope_when_checking_if_a_relationship_is_reciprocated(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.follow(1, 11, scope = 'another_scope')
+    amico.follow(11, 1, scope = 'another_scope')
+    amico.is_reciprocated(1, 11).should.be.false
+    amico.is_reciprocated(1, 11, scope = 'another_scope').should.be.true
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+    amico.is_reciprocated(1, 11).should.be.true
+
   # pending follow tests
   def test_it_should_remove_the_pending_relationship_and_add_to_following_and_followers_if_accept_is_called(self):
     amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
@@ -66,6 +101,32 @@ class AmicoTest(unittest.TestCase):
     amico.is_following(11, 1).should.be.false
     amico.is_follower(11, 1).should.be.true
     amico.is_follower(1, 11).should.be.false
+
+  def test_it_should_remove_the_pending_relationship_and_add_to_following_and_followers_if_accept_is_called_and_add_to_reciprocated_relationship(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(1, 11)
+    amico.follow(11, 1)
+    amico.is_pending(1, 11).should.be.true
+    amico.is_pending(11, 1).should.be.true
+
+    amico.accept(1, 11)
+
+    amico.is_pending(1, 11).should.be.false
+    amico.is_pending(11, 1).should.be.true
+    amico.is_following(1, 11).should.be.true
+    amico.is_following(11, 1).should.be.false
+    amico.is_follower(11, 1).should.be.true
+    amico.is_follower(1, 11).should.be.false
+
+    amico.accept(11, 1)
+
+    amico.is_pending(1, 11).should.be.false
+    amico.is_pending(11, 1).should.be.false
+    amico.is_following(1, 11).should.be.true
+    amico.is_following(11, 1).should.be.true
+    amico.is_follower(11, 1).should.be.true
+    amico.is_follower(1, 11).should.be.true
+    amico.is_reciprocated(1, 11).should.be.true
 
   # unfollow tests
   def test_it_should_allow_you_to_unfollow(self):
@@ -119,6 +180,17 @@ class AmicoTest(unittest.TestCase):
     amico.block(1, 1)
 
     amico.is_blocked(1, 1).should.be.false
+
+  def test_it_should_return_that_someone_is_being_blocked(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+    amico.is_blocked(1, 11).should.be.true
+    amico.is_following(11, 1).should.be.false
+
+  def test_it_should_return_that_someone_is_blocking_you(self):
+    amico = Amico(redis_connection = self.redis_connection)
+    amico.block(1, 11)
+    amico.is_blocked_by(11, 1).should.be.true
 
   # unblock tests
   def test_it_should_allow_you_to_block_someone_you_have_blocked(self):
@@ -186,6 +258,7 @@ class AmicoTest(unittest.TestCase):
     amico.blocked_count(1).should.equal(0)
     amico.blocked_by_count(11).should.equal(0)
 
+  # list and paging tests
   def test_it_should_return_the_correct_following_list(self):
     amico = Amico(redis_connection = self.redis_connection)
     amico.follow(1, 11)
@@ -238,6 +311,7 @@ class AmicoTest(unittest.TestCase):
     amico.pending_with(1).should.equal(["11"])
     amico.pending_with(11).should.equal(["1"])
 
+  # page count tests
   def test_it_should_return_the_correct_following_page_count(self):
     amico = Amico(redis_connection = self.redis_connection)
     self.__add_reciprocal_followers(amico)
@@ -335,7 +409,6 @@ class AmicoTest(unittest.TestCase):
     amico.page_count(1, 'pending').should.equal(1)
 
   # all tests
-
   def test_it_should_return_the_correct_list_when_calling_all_for_various_types(self):
     amico = Amico(redis_connection = self.redis_connection)
     self.__add_reciprocal_followers(amico, count = 6)
@@ -367,6 +440,7 @@ class AmicoTest(unittest.TestCase):
     amico.all(1, 'blocked').should.have.length_of(4)
     amico.all(1, 'blocked_by').should.have.length_of(4)
 
+  # helper methods
   def __add_reciprocal_followers(self, amico, count = 27, block_relationship = False):
     for outer_index in range(1, count):
       for inner_index in range(1, count):
