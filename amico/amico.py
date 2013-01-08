@@ -1,9 +1,10 @@
 import math
-import sys
+import time
+
 import redis
 
 class Amico(object):
-  VERSION = '1.0.0'
+  VERSION = '1.0.1'
 
   DEFAULTS = {
     'namespace': 'amico',
@@ -55,8 +56,8 @@ class Amico(object):
 
     if self.options['pending_follow']:
       transaction = self.redis_connection.pipeline()
-      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), 33, from_id)
-      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), 33, to_id)
+      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), int(time.time()), from_id)
+      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), int(time.time()), to_id)
       transaction.execute()
     else:
       self.__add_following_followers_reciprocated(from_id, to_id, scope)
@@ -110,8 +111,8 @@ class Amico(object):
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, to_id), from_id)
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, from_id), to_id)
     transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, to_id), from_id)
-    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, from_id), 33, to_id)
-    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, to_id), 33, from_id)
+    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_key'], scope, from_id), int(time.time()), to_id)
+    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['blocked_by_key'], scope, to_id), int(time.time()), from_id)
     transaction.execute()
 
   def unblock(self, from_id, to_id, scope = None):
@@ -687,16 +688,16 @@ class Amico(object):
       scope = self.options['default_scope_key']
 
     transaction = self.redis_connection.pipeline()
-    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, from_id), 33, to_id)
-    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, to_id), 33, from_id)
-    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), 33, from_id)
-    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), 33, to_id)
+    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['following_key'], scope, from_id), int(time.time()), to_id)
+    transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['followers_key'], scope, to_id), int(time.time()), from_id)
+    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_key'], scope, to_id), int(time.time()), from_id)
+    transaction.zrem('%s:%s:%s:%s' % (self.options['namespace'], self.options['pending_with_key'], scope, from_id), int(time.time()), to_id)
     transaction.execute()
 
     if self.is_reciprocated(from_id, to_id, scope):
       transaction = self.redis_connection.pipeline()
-      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, from_id), 33, to_id)
-      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, to_id), 33, from_id)
+      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, from_id), int(time.time()), to_id)
+      transaction.zadd('%s:%s:%s:%s' % (self.options['namespace'], self.options['reciprocated_key'], scope, to_id), int(time.time()), from_id)
       transaction.execute()
 
   def __total_pages(self, key, page_size):

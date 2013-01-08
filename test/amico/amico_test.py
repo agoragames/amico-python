@@ -13,7 +13,7 @@ class AmicoTest(unittest.TestCase):
     self.redis_connection.flushdb()
 
   def test_version(self):
-    Amico.VERSION.should.equal('1.0.0')
+    Amico.VERSION.should.equal('1.0.1')
 
   def test_amico_defaults(self):
     Amico.DEFAULTS['namespace'].should.equal('amico')
