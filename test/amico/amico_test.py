@@ -216,6 +216,16 @@ class AmicoTest(unittest.TestCase):
     amico.is_pending_with(11, 1).should.be.false
     amico.is_blocked(1, 11).should.be.false
 
+  def test_it_should_remove_the_pending_relationship_if_you_block_someone(self):
+    amico = Amico(options = {'pending_follow': True}, redis_connection = self.redis_connection)
+    amico.follow(11, 1)
+    amico.is_pending(11, 1).should.be.true
+    amico.is_pending_with(1, 11).should.be.true
+    amico.block(1, 11)
+    amico.is_pending(11, 1).should.be.false
+    amico.is_pending_with(1, 11).should.be.false
+    amico.is_blocked(1, 11).should.be.true
+
   # clear tests
   def test_it_should_remove_follower_and_following_relationships(self):
     amico = Amico(redis_connection = self.redis_connection)
