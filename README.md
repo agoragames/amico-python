@@ -210,4 +210,4 @@ user-defined in the future to allow for some specific ordering.
 
 ## Copyright
 
-Copyright (c) 2013-2014 David Czarnecki. See LICENSE.txt for further details.
+Copyright (c) 2013-2015 David Czarnecki. See LICENSE.txt for further details.
